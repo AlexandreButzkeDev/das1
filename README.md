@@ -282,3 +282,497 @@ GitHub: Mantenha seus repositórios atualizados (não seja um "bicho preguiça"!
 S3 Bucket: Nunca deixe público sem necessidade. Use URLs pré-assinadas para acesso controlado!
 
 Regiões: Escolha com base em custo, velocidade e leis.
+
+Aula dia 27/03
+Pontos Chave:
+SQL Saturday (Evento Promovido):
+
+Evento gratuito com palestras, brindes e comida.
+
+Oferece horas complementares para participantes.
+
+Inscrições abertas (com limite de vagas).
+
+Demonstração Técnica:
+
+Uso do AWS Sandbox para ambiente temporário com permissões pré-configuradas.
+
+Autenticação na AWS via:
+
+Variáveis de ambiente (AWS_ACCESS_KEY_ID e AWS_SECRET_ACCESS_KEY).
+
+Não hard-codar credenciais no código por questões de segurança.
+
+Código Python para criar um bucket S3:
+
+python
+import boto3  
+s3 = boto3.client('s3')  
+s3.create_bucket(Bucket='nome-do-bucket', CreateBucketConfiguration={'LocationConstraint': 'sa-east-1'})  
+Região AWS: Ajuste para sa-east-1 (São Paulo) se necessário.
+
+Passo a Passo:
+
+Obter credenciais no AWS Sandbox (console de detalhes).
+
+Configurar variáveis de ambiente no VS Code (ou sistema operacional).
+
+Executar o código e verificar o bucket no Console S3.
+
+Problemas comuns:
+
+Erro de região (LocationConstraint inválido).
+
+Verificar se o console AWS está na região correta (ex: São Paulo).
+
+Boas Práticas:
+
+Encerrar recursos após uso (clicar em "End Lab" no Sandbox para evitar custos).
+
+Commit seguro: Não versionar arquivos com credenciais (.env no .gitignore).
+
+Ferramentas e Conceitos:
+
+AWS SDK (Boto3) para interação programática.
+
+Variáveis de ambiente para gerenciamento de credenciais.
+
+Cloud Sandbox para testes sem impacto em ambientes reais.
+
+Próximos Passos:
+Continuar o desenvolvimento na próxima aula (segunda-feira).
+
+Revisar código e resolver dúvidas pendentes.
+
+30/03
+
+istagem de Objetos no S3:
+
+Desafio: Buckets podem ter milhões de objetos – a AWS retorna os resultados paginados (evita sobrecarga).
+
+Limite padrão: 1.000 objetos por requisição.
+
+Se houver mais, é necessário iterar ("pagination").
+
+Código Python (Boto3):
+
+python
+import boto3  
+
+# Usando API de ALTO NÍVEL (Resource)  
+s3 = boto3.resource('s3')  
+bucket = s3.Bucket('nome-do-seu-bucket')  
+
+for obj in bucket.objects.all():  # Lista todos os objetos (paginado internamente)  
+    print(obj.key)  # Nome do arquivo  
+API de Alto Nível vs. Baixo Nível:
+
+Alto Nível (resource): Mais simples (gerencia paginação automaticamente).
+
+Baixo Nível (client): Exige tratamento manual de paginação (ex.: list_objects_v2 com ContinuationToken).
+
+Práticas Seguras:
+
+Encerrar o Sandbox: Sempre clicar em "End Lab" para evitar custos ou recursos órfãos.
+
+Credenciais: Nunca hard-codar no código – usar variáveis de ambiente (como mostrado na aula anterior).
+
+Próximos Passos:
+
+Exemplo de exclusão (CRUD completo): Será abordado posteriormente.
+
+Material no GitHub: Códigos disponíveis para download (incluindo exemplos de listagem).
+
+Observações Finais:
+S3 é um serviço simples, mas escalável – ideal para armazenamento massivo.
+
+Dica: Para buckets muito grandes, considere filtros (ex.: Prefix) ou ferramentas como AWS CLI (aws s3 ls).
+
+"Não esqueçam de finalizar o laboratório!" – Walter Coan.
+
+aula
+03/04
+Pontos Chave:
+1. EC2: Máquinas Virtuais na AWS
+O que é? Serviço que permite criar e gerenciar máquinas virtuais (VMs) na nuvem.
+
+Casos de uso:
+
+Servidores tradicionais (Linux/Windows).
+
+Aplicações em containers (Docker) → Usar Elastic Container Service (ECS) ou Elastic Kubernetes Service (EKS).
+
+Aplicações prontas (ex.: WordPress) → Usar Lightsail (simplificado).
+
+2. Opções de Armazenamento na AWS
+Serviço	Descrição	Exemplo de Uso
+EBS (Elastic Block Store)	Discos virtuais acoplados a instâncias EC2. Permite redimensionamento e troca de tipo (HDD/SSD) a quente.	Sistema de arquivos de uma VM.
+Instance Store	Armazenamento temporário (efêmero) diretamente no hardware do servidor físico.	Cache de alta performance.
+EFS (Elastic File System)	Sistema de arquivos compartilhados (NFSv4) para Linux. Escalável (paga pelo uso real).	Compartilhamento de arquivos entre múltiplas VMs.
+FSx	Sistemas de arquivos compatíveis com Windows (SMB) e outros (ex.: Lustre para HPC).	Compartilhamento em ambientes Windows.
+Destaques:
+
+EFS:
+
+Altamente disponível (réplicas em múltiplas AZs).
+
+Cobrança por uso (elástico).
+
+FSx: Ideal para integração com Active Directory e aplicações Windows.
+
+3. Diferenças Críticas:
+EBS vs. Instance Store:
+
+EBS é persistente e flexível; Instance Store é volátil (dados são perdidos se a instância for encerrada).
+
+EFS vs. FSx:
+
+EFS usa NFS (Linux); FSx usa SMB (Windows/Linux).
+
+Próximos Passos:
+Na próxima aula: Configuração prática de instâncias EC2 e demonstração de attach de volumes EBS/EFS.
+aula 07/04
+Criação de uma Instância EC2 (Servidor de Minecraft)
+
+Demonstração de como subir uma instância EC2 para rodar um servidor de Minecraft.
+
+Escolha do Amazon Linux 2023 (com suporte a ARM/Graviton, chip da AWS).
+
+Explicação sobre tipos de instância:
+
+t2.micro (Free Tier) – Máquina mais comum, com modelo "Burstable" (CPU por créditos).
+
+Acumula créditos quando o uso da CPU está abaixo de 100%.
+
+Permite picos de CPU (até 120%) consumindo créditos.
+
+t3.small – Opção um pouco mais potente (2 vCPUs, 1GB RAM).
+
+Configuração da Instância
+
+Geração de chave SSH (par de chaves .pem) para acesso remoto.
+
+Atenção: A chave é fornecida apenas uma vez; se perdida, não há recuperação.
+
+Configuração de rede (VPC padrão) e liberação da porta SSH apenas para um IP específico (ex: IP da universidade).
+
+User Data: Script para automatizar instalações (ex: Apache, PHP, MySQL).
+
+Acesso e Comandos Básicos no Linux AWS
+
+Conexão via SSH usando o usuário padrão "ec2-user".
+
+Diferença entre gerenciadores de pacotes:
+
+Amazon Linux usa yum (baseado em CentOS/RHEL) em vez de apt (Debian/Ubuntu).
+
+Ferramentas úteis:
+
+htop (monitoramento de recursos, mais visual que top).
+
+10/04
+Escalabilidade em Bancos Relacionais
+Problema: Bancos relacionais tradicionais têm dificuldade para escalar horizontalmente.
+
+Solução com Réplicas:
+
+Primária (Master): Permite leituras e escritas (INSERT, UPDATE, DELETE).
+
+Réplicas (Read Replicas): Apenas leituras (SELECT).
+
+Uso comum:
+
+Primária para operações críticas.
+
+Réplicas para consultas e BI (evitando sobrecarga no primário).
+
+Replicação: Dados são sincronizados via logs de transação (envio pela rede).
+
+3. Amazon Aurora – O Banco Relacional Avançado da AWS
+Inovação: A AWS reescreveu a camada de armazenamento do PostgreSQL/MySQL.
+
+Funcionamento:
+
+Cluster de armazenamento distribuído:
+
+Dados são replicados automaticamente em 3 zonas de disponibilidade (AZs).
+
+Réplicas leem diretamente do storage compartilhado (não dependem de replicação tradicional).
+
+Vantagens:
+
+Alta disponibilidade (falhas são tratadas automaticamente).
+
+Performance superior (leitura escalável sem overhead de rede).
+
+4. Aurora Serverless – Banco "Sob Demanda"
+Conceito:
+
+Desliga automaticamente quando não está em uso (ex: à noite ou em horários de baixo tráfego).
+
+Liga novamente quando há uma tentativa de conexão (cold start de alguns segundos).
+
+Cenários de Uso:
+
+Aplicações com uso intermitente (ex: sistemas operacionais apenas em horário comercial).
+
+Economia de custos: Paga-se apenas quando o banco está ativo.
+
+Limitação:
+
+Cold start pode afetar aplicações que exigem resposta imediata (requer ajuste de timeouts).
+
+14/04
+Criar um banco de dados na AWS e aprender a acessá-lo.
+
+Foco em bancos gerenciados (RDS) como Aurora, MySQL, PostgreSQL e MariaDB.
+
+Limitações do Sandbox AWS:
+
+Só é possível criar instâncias de Aurora, MySQL Server, PostgreSQL e MariaDB (não Oracle ou SQL Server).
+
+Tamanhos de instância limitados (ex: db.t3.micro a db.t3.medium).
+
+2. Passo a Passo: Criando um Banco de Dados
+Processo simplificado:
+
+Selecionar o tipo de banco (ex: PostgreSQL).
+
+Escolher a instância (ex: db.t3.micro – a mais básica).
+
+Configurar credenciais (usuário/senha do banco).
+
+Definir segurança (grupo de segurança para liberar acesso).
+
+3. Comandos Básicos no PostgreSQL (Prática no Cloud9)
+Criar uma tabela:
+
+sql
+CREATE TABLE cliente (
+    id INT,
+    nome VARCHAR(500)
+);
+Inserir e consultar dados:
+
+sql
+INSERT INTO cliente VALUES (1, 'João');
+SELECT * FROM cliente;
+Ver estrutura da tabela:
+
+sql
+DESCRIBE cliente;  -- No PostgreSQL, usa-se: \d cliente
+4. Comparativo entre Bancos
+PostgreSQL vs. SQL Server:
+
+PostgreSQL: Mais simples, sem esquemas como dbo (usa "schemas" como agrupadores).
+
+SQL Server/Oracle: Possuem estruturas mais complexas (ex: dbo no SQL Server).
+
+Facilidade de uso: PostgreSQL é mais enxuto, mas tem particularidades (ex: autenticação pode ser mais complicada).
+
+5. Integração com Aplicações
+Conexão via JDBC (ex: Spring Boot):
+
+Basta configurar a URL de conexão, usuário e senha no application.properties.
+
+Exemplo:
+
+properties
+spring.datasource.url=jdbc:postgresql://[endpoint-RDS]/[nome-banco]
+spring.datasource.username=usuario
+spring.datasource.password=senha
+6. Escalabilidade e Gerenciamento
+Aumentar capacidade:
+
+É possível escalar verticalmente (ex: mudar de db.t3.micro para db.t3.medium) sem downtime.
+
+Aumentar disco: Feito diretamente no console da AWS (automático e sem intervenção manual).
+
+7. Encerramento do Ambiente (Sandbox AWS)
+Desprovisionamento automático:
+
+Ao finalizar o lab, basta clicar em "End Lab" no Sandbox para remover todos os recursos.
+
+Vantagem: Não gera custos (a AWS oferece créditos para o Sandbox).
+
+17/04
+Bancos Relacionais na AWS (RDS)
+RDS (Relational Database Service):
+
+Oferece bancos gerenciados como PostgreSQL, MySQL, Aurora, MariaDB, Oracle e SQL Server.
+
+Vantagens: Alta disponibilidade, backups automáticos, escalabilidade vertical.
+
+RDS Proxy:
+
+Serviço para gerenciar conexões entre aplicações e bancos relacionais.
+
+Benefícios:
+
+Resiliência: Evita sobrecarga de conexões (ex: picos de tráfego).
+
+Pool de conexões: Reutiliza conexões existentes, reduzindo latência.
+
+3. Bancos Não Relacionais (NoSQL) na AWS
+Quando usar NoSQL?
+
+Casos onde bancos relacionais não são ideais:
+
+Dados dinâmicos (ex: produtos da Amazon com estruturas variadas).
+
+Escalabilidade horizontal (alta performance para leituras/escritas distribuídas).
+
+Flexibilidade de esquema (sem schema rígido).
+
+Principais Bancos NoSQL na AWS
+Serviço AWS	Modelo	Caso de Uso
+DynamoDB	Chave-Valor/Documento	Aplicações de alta escala (ex: carrinho de compras).
+Amazon Keyspaces	Colunar (Cassandra)	Dados massivos e distribuídos (ex: LinkedIn).
+MemoryDB (Redis)	Chave-Valor em RAM	Cache, sessões de usuário, jogos online.
+Neptune	Grafos	Redes sociais, detecção de fraudes, recomendações.
+Timestream	Série Temporal	IoT (dados baseados em tempo, como sensores).
+Quantum Ledger	Ledger (imutável)	Transações financeiras, auditoria (tipo blockchain).
+Exemplos Reais:
+
+DynamoDB: Usado pela Amazon para produtos (esquema flexível).
+
+Cassandra: Base do LinkedIn (escala global).
+
+Neptune: Reconhecimento de padrões em grafos (ex: fraudes em transações).
+
+4. Comparativo: SQL vs. NoSQL
+Critério	SQL (RDS)	NoSQL (DynamoDB, etc.)
+Esquema	Rígido (tabelas definidas).	Flexível (sem schema fixo).
+Escalabilidade	Vertical (mais CPU/RAM).	Horizontal (particionamento).
+Consulta	SQL padrão.	Linguagens proprietárias (ex: MongoDB Query).
+Transações	ACID (forte consistência).	BASE (consistência eventual).
+
+aula 24/04
+2. Demonstração Prática
+Consultando Dados no DynamoDB
+Acessar a tabela:
+
+No console da AWS → DynamoDB → Tables → Selecionar a tabela criada (ex: itens).
+
+Explorar itens:
+
+Clicar em "Explore table items" para visualizar os registros.
+
+Exemplo:
+
+Chave primária (id) retorna os dados completos do item.
+
+Atributos opcionais (ex: telefone) aparecem apenas se existirem no item.
+
+Estrutura de Dados no DynamoDB
+Chave Primária:
+
+Partition Key (PK): Identificador único (ex: id).
+
+Sort Key (opcional): Ordenação adicional (ex: data_criacao).
+
+Atributos Dinâmicos:
+
+Cada item pode ter campos diferentes (ex: um item tem telefone, outro não).
+
+3. Índices no DynamoDB
+Para buscas em campos não-chave, é necessário criar índices secundários:
+
+Tipo de Índice	Descrição	Exemplo
+Local Secondary Index (LSI)	Usa a mesma partition key da tabela, mas com sort key diferente.	Buscar por id + nome.
+Global Secondary Index (GSI)	Permite nova partition key e sort key, indexando qualquer campo.	Buscar por email ou telefone.
+Observação:
+
+Itens sem o campo indexado não aparecem no resultado (diferente de SQL, onde NULL seria retornado).
+
+Isso reduz o tamanho do índice e melhora a performance.
+
+4. Comparativo: DynamoDB vs. Bancos Relacionais
+Critério	DynamoDB (NoSQL)	Banco Relacional (SQL)
+Esquema	Flexível (sem schema fixo).	Rígido (tabelas definidas).
+Consulta	Por chave primária ou índices secundários.	SQL com JOINs e filtros complexos.
+Transações	Suporte limitado a transações ACID.	Suporte completo a transações ACID.
+Escalabilidade	Horizontal automática.	Vertical (mais CPU/RAM).
+5. Casos de Uso Reais
+Amazon.com:
+
+Usa DynamoDB para o catálogo de produtos (estrutura variável por categoria).
+
+Redes Sociais:
+
+Perfis de usuários com atributos personalizados (ex: Twitter).
+
+Sistemas de Recomendação:
+
+Dados semi-estruturados (ex: histórico de navegação).
+
+aula 28/04
+
+DynamoDB Operations Deep Dive
+Key Concepts:
+
+Primary key types:
+
+Simple (partition key only)
+
+Composite (partition + sort key)
+
+Two core operations:
+
+Query - Efficient lookups using primary keys
+
+Scan - Full table scan (expensive operation)
+
+Query Operation:
+
+javascript
+const params = {
+  TableName: "YourTable",
+  KeyConditionExpression: "partitionKey = :value",
+  ExpressionAttributeValues: {
+    ":value": "searchValue"
+  }
+};
+Only works on primary key attributes
+
+Returns paginated results (use LastEvaluatedKey for pagination)
+
+Scan Operation:
+
+javascript
+const params = {
+  TableName: "YourTable",
+  FilterExpression: "attribute = :val",
+  ExpressionAttributeValues: {
+    ":val": "filterValue"
+  }
+};
+Scans entire table (avoid in production)
+
+Use sparingly due to performance impact
+
+Consider adding GSI for frequent scan patterns
+
+Performance Considerations:
+
+Query: O(1) time complexity
+
+Scan: O(n) time complexity (reads every item)
+
+Best practice: Design access patterns around primary keys
+
+Error Handling:
+
+Common mistakes:
+
+Missing ExpressionAttributeValues
+
+Typos in parameter names (e.g., "FilterExpression" vs "FilaterExpression")
+
+Always validate parameters before execution
+
+Practical Applications:
+
+Query: User profile lookups, order history
+
+Scan: Backoffice reports (schedule during low-traffic periods)
